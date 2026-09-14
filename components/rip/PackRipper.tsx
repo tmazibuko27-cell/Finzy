@@ -11,6 +11,7 @@ import type { PackOpenResult } from '@/types/content';
 type Phase = 'idle' | 'opening' | 'revealed';
 
 const CONFETTI_COLORS = ['#FDE047', '#60A5FA', '#F87171', '#4ADE80', '#C084FC'];
+const PACK_SIZE = 5;
 
 export function PackRipper({
   balance,
@@ -24,6 +25,8 @@ export function PackRipper({
   const [phase, setPhase] = useState<Phase>('idle');
   const [cardFlipped, setCardFlipped] = useState(false);
   const [result, setResult] = useState<PackOpenResult | null>(null);
+  const [packResults, setPackResults] = useState<PackOpenResult[]>([]);
+  const [cardIndex, setCardIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   const [shake] = useState(() => new Animated.Value(0));
@@ -45,6 +48,18 @@ export function PackRipper({
 
   const canRip = phase === 'idle';
 
+  const launchConfetti = () => {
+    confetti.forEach((particle) => {
+      particle.progress.setValue(0);
+      Animated.timing(particle.progress, {
+        toValue: 1,
+        duration: 1200 + Math.random() * 500,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }).start();
+    });
+  };
+
   const handleRip = async () => {
     if (!canRip) return;
     setError(null);
@@ -59,7 +74,13 @@ export function PackRipper({
     ]).start();
 
     try {
-      const outcome = await openPack();
+      const outcomes: PackOpenResult[] = [];
+      for (let index = 0; index < PACK_SIZE; index += 1) {
+        outcomes.push(await openPack());
+      }
+      const outcome = outcomes[0];
+      setPackResults(outcomes);
+      setCardIndex(0);
       setResult(outcome);
 
       Animated.timing(flip, {
@@ -76,17 +97,9 @@ export function PackRipper({
           isBig ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning
         ).catch(() => {});
 
-        confetti.forEach((particle) => {
-          particle.progress.setValue(0);
-          Animated.timing(particle.progress, {
-            toValue: 1,
-            duration: 900 + Math.random() * 400,
-            easing: Easing.out(Easing.quad),
-            useNativeDriver: true,
-          }).start();
-        });
+        launchConfetti();
 
-        onOpened(outcome);
+        outcomes.forEach((card) => onOpened(card));
       });
     } catch (err) {
       setPhase('idle');
@@ -110,6 +123,7 @@ export function PackRipper({
     flip.setValue(1);
     reveal.setValue(1);
     setPhase('revealed');
+    launchConfetti();
     onOpened(previewResult);
   };
 
@@ -118,8 +132,24 @@ export function PackRipper({
     interactiveFlip.setValue(0);
     reveal.setValue(0);
     setResult(null);
+    setPackResults([]);
+    setCardIndex(0);
     setCardFlipped(false);
     setPhase('idle');
+  };
+
+  const handleNextCard = () => {
+    const nextIndex = cardIndex + 1;
+    const nextCard = packResults[nextIndex];
+    if (!nextCard) {
+      resetForNextRip();
+      return;
+    }
+    setCardIndex(nextIndex);
+    setResult(nextCard);
+    setCardFlipped(false);
+    interactiveFlip.setValue(0);
+    launchConfetti();
   };
 
   const handleCardFlip = () => {
@@ -222,8 +252,8 @@ export function PackRipper({
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       {phase === 'revealed' ? (
-        <Pressable style={styles.actionButton} onPress={resetForNextRip} accessibilityRole="button">
-          <Text style={styles.actionButtonText}>{balance > 0 ? 'Rip another' : 'Done'}</Text>
+        <Pressable style={styles.actionButton} onPress={handleNextCard} accessibilityRole="button">
+          <Text style={styles.actionButtonText}>{cardIndex + 1 < packResults.length ? `Next card · ${cardIndex + 2}/${PACK_SIZE}` : 'Done'}</Text>
         </Pressable>
       ) : (
         <>
@@ -249,6 +279,9 @@ export function PackRipper({
           ) : null}
         </>
       )}
+      {phase === 'revealed' && packResults.length > 1 ? (
+        <Text style={styles.packProgress}>Card {cardIndex + 1} of {packResults.length}</Text>
+      ) : null}
     </View>
   );
 }
@@ -348,6 +381,7 @@ const styles = StyleSheet.create({
     height: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 20,
   },
   confettiDot: { position: 'absolute', width: 8, height: 8, borderRadius: 4 },
   card: {
@@ -405,5 +439,6 @@ const styles = StyleSheet.create({
   actionButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   previewButton: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', borderRadius: 999, paddingHorizontal: 20, paddingVertical: 10 },
   previewButtonText: { color: 'rgba(255,255,255,0.8)', fontWeight: '700', fontSize: 13 },
+  packProgress: { color: 'rgba(255,255,255,0.62)', fontSize: 12, fontWeight: '700' },
   error: { color: '#F87171', fontSize: 13, textAlign: 'center' },
 });
