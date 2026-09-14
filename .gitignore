@@ -32,6 +32,13 @@ yarn-error.*
 # local env files
 .env*.local
 
+# private study materials
+*.epub
+*.EPUB
+*.pdf
+*.PDF
+data/cfa.local/
+
 # typescript
 *.tsbuildinfo
 
