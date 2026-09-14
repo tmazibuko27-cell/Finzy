@@ -8,19 +8,24 @@ import { CardSkeleton } from '@/components/feed/CardSkeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { useTheme } from '@/components/ThemeProvider';
 import type { FeedCard } from '@/types/content';
+import { useLocalStore } from '@/lib/localStore';
 
 const VIEWABILITY_CONFIG = { itemVisiblePercentThreshold: 80 };
 
 export default function ForYouScreen() {
   const { height } = useWindowDimensions();
   const theme = useTheme();
+  const markCardSeen = useLocalStore((s) => s.markCardSeen);
   const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useFeed();
 
   const cards = useMemo<FeedCard[]>(() => data?.pages.flatMap((p) => p.cards) ?? [], [data]);
 
   const onViewableItemsChanged = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    // card_impression analytics hook point: viewableItems[0]?.item as FeedCard
-  }, []);
+    viewableItems.forEach(({ item }) => {
+      const card = item as FeedCard;
+      if (card?.id) markCardSeen(card.id);
+    });
+  }, [markCardSeen]);
 
   const handleReport = useCallback((cardId: string) => {
     Alert.alert('Report this card', 'What is the issue?', [

@@ -11,6 +11,7 @@ type CollectionRecord = { count: number; firstUnlockedAt: string };
 
 type LocalState = {
   savedCardIds: Set<string>;
+  seenCardIds: Set<string>;
   followedTopicSlugs: Set<string>;
   guestXp: number;
   onboardingComplete: boolean;
@@ -20,6 +21,7 @@ type LocalState = {
   collection: Record<string, CollectionRecord>;
   hydrated: boolean;
   toggleSaved: (cardId: string) => void;
+  markCardSeen: (cardId: string) => void;
   toggleFollow: (topicSlug: string) => void;
   addGuestXp: (amount: number) => void;
   completeOnboarding: () => void;
@@ -35,6 +37,7 @@ const STORAGE_KEY = 'finzy.localStore.v1';
 type PersistableState = Pick<
   LocalState,
   | 'savedCardIds'
+  | 'seenCardIds'
   | 'followedTopicSlugs'
   | 'guestXp'
   | 'onboardingComplete'
@@ -50,6 +53,7 @@ async function persist(state: PersistableState) {
       STORAGE_KEY,
       JSON.stringify({
         savedCardIds: Array.from(state.savedCardIds),
+        seenCardIds: Array.from(state.seenCardIds),
         followedTopicSlugs: Array.from(state.followedTopicSlugs),
         guestXp: state.guestXp,
         onboardingComplete: state.onboardingComplete,
@@ -71,6 +75,7 @@ function todayLocalDate(): string {
 
 export const useLocalStore = create<LocalState>((set, get) => ({
   savedCardIds: new Set(),
+  seenCardIds: new Set(),
   followedTopicSlugs: new Set(),
   guestXp: 0,
   onboardingComplete: false,
@@ -85,6 +90,13 @@ export const useLocalStore = create<LocalState>((set, get) => ({
     else next.add(cardId);
     set({ savedCardIds: next });
     persist({ ...get(), savedCardIds: next });
+  },
+  markCardSeen: (cardId) => {
+    if (get().seenCardIds.has(cardId)) return;
+    const next = new Set(get().seenCardIds);
+    next.add(cardId);
+    set({ seenCardIds: next });
+    persist({ ...get(), seenCardIds: next });
   },
   toggleFollow: (topicSlug) => {
     const next = new Set(get().followedTopicSlugs);
@@ -146,6 +158,7 @@ export const useLocalStore = create<LocalState>((set, get) => ({
         const parsed = JSON.parse(raw);
         set({
           savedCardIds: new Set(parsed.savedCardIds ?? []),
+          seenCardIds: new Set(parsed.seenCardIds ?? []),
           followedTopicSlugs: new Set(parsed.followedTopicSlugs ?? []),
           guestXp: parsed.guestXp ?? 0,
           onboardingComplete: parsed.onboardingComplete ?? false,

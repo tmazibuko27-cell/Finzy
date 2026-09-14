@@ -9,7 +9,7 @@ const PAGE_SIZE = 6;
  * Demo content is used only when no backend is configured. Live failures
  * propagate to the query layer, which preserves previously loaded pages.
  */
-export async function fetchFeedPage(cursor: string | null): Promise<FeedPage> {
+export async function fetchFeedPage(cursor: string | null, seenCardIds: Set<string> = new Set()): Promise<FeedPage> {
   if (supabase) {
     const { data, error } = await supabase.rpc('get_feed', { cursor, limit: PAGE_SIZE });
     if (error) throw error;
@@ -17,17 +17,18 @@ export async function fetchFeedPage(cursor: string | null): Promise<FeedPage> {
     return data as FeedPage;
   }
 
-  return fetchMockFeedPage(cursor);
+  return fetchMockFeedPage(cursor, seenCardIds);
 }
 
-function fetchMockFeedPage(cursor: string | null): FeedPage {
+function fetchMockFeedPage(cursor: string | null, seenCardIds: Set<string>): FeedPage {
+  const unseenCards = MOCK_FEED_CARDS.filter((card) => !seenCardIds.has(card.id));
   const startIndex = cursor ? Number(cursor) : 0;
-  const slice = MOCK_FEED_CARDS.slice(startIndex, startIndex + PAGE_SIZE);
-  const nextIndex = startIndex + PAGE_SIZE;
+  const slice = unseenCards.slice(startIndex, startIndex + PAGE_SIZE);
+  const nextIndex = startIndex + slice.length;
 
 
   return {
     cards: slice,
-    nextCursor: nextIndex < MOCK_FEED_CARDS.length ? String(nextIndex) : null,
+    nextCursor: nextIndex < unseenCards.length ? String(nextIndex) : null,
   };
 }
