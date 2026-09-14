@@ -185,11 +185,7 @@ export function PackRipper({
 
         {phase !== 'revealed' ? <Animated.View style={{ transform: [{ translateX: shakeTranslate }, { perspective: 800 }, { rotateY: flipRotate }] }}>
           <Animated.View style={[styles.card, styles.cardFace, { opacity: frontOpacity }]}>
-            <View style={styles.packInner}>
-              <Ionicons name="sparkles" size={36} color="#FDE047" />
-              <Text style={styles.packLabel}>FINZY</Text>
-              <Text style={styles.packSub}>CEO PACK</Text>
-            </View>
+            <CollectibleWrapper />
           </Animated.View>
 
           <Animated.View
@@ -262,13 +258,28 @@ export function PackRipper({
 function CollectibleCardBack() {
   return (
     <LinearGradient colors={['#07111F', '#123B4E', '#07111F']} style={styles.backContent}>
-      <View style={styles.backHalo}>
-        <Image source={require('../../assets/images/collectibles/logo.png')} style={styles.backLogo} contentFit="contain" />
-      </View>
+      <Image source={require('../../assets/images/collectibles/logo-mark.svg')} style={styles.backLogo} contentFit="contain" />
       <Text style={styles.backBrand}>FINZY</Text>
       <Text style={styles.backSeries}>COLLECTIBLE SERIES</Text>
       <View style={styles.backRule} />
       <Text style={styles.backHint}>TAP TO FLIP</Text>
+    </LinearGradient>
+  );
+}
+
+function CollectibleWrapper() {
+  return (
+    <LinearGradient colors={['#123B4E', '#07111F', '#0F2740']} style={styles.wrapper}>
+      <View style={styles.wrapperTopFold} />
+      <View style={styles.wrapperLogoFrame}>
+        <Image source={require('../../assets/images/collectibles/logo.png')} style={styles.wrapperLogo} contentFit="contain" />
+      </View>
+      <Text style={styles.wrapperBrand}>FINZY</Text>
+      <Text style={styles.wrapperSeries}>FOUNDERS COLLECTION</Text>
+      <View style={styles.wrapperTearLine}>
+        <Text style={styles.wrapperTearText}>TEAR HERE</Text>
+      </View>
+      <Text style={styles.wrapperHint}>COLLECTIBLE CARD</Text>
     </LinearGradient>
   );
 }
@@ -357,12 +368,20 @@ const styles = StyleSheet.create({
   cardInnerRim: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.45)', borderRadius: 14, overflow: 'hidden' },
   faceContent: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 14 },
   backContent: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 18 },
-  backHalo: { width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: 'rgba(167,243,208,0.55)', backgroundColor: 'rgba(167,243,208,0.08)', alignItems: 'center', justifyContent: 'center' },
-  backLogo: { width: 92, height: 92 },
+  backLogo: { width: 116, height: 116 },
   backBrand: { color: '#fff', fontSize: 23, fontWeight: '900', letterSpacing: 4, marginTop: 16 },
   backSeries: { color: '#A7F3D0', fontSize: 8, fontWeight: '800', letterSpacing: 1.5, marginTop: 5 },
   backRule: { width: 90, height: 1, backgroundColor: 'rgba(255,255,255,0.35)', marginVertical: 22 },
   backHint: { color: 'rgba(255,255,255,0.55)', fontSize: 8, fontWeight: '800', letterSpacing: 1.3 },
+  wrapper: { flex: 1, width: '100%', alignItems: 'center', justifyContent: 'center', padding: 18, overflow: 'hidden' },
+  wrapperTopFold: { position: 'absolute', top: 0, left: 0, right: 0, height: 26, backgroundColor: '#1A5265', borderBottomWidth: 1, borderBottomColor: 'rgba(167,243,208,0.45)' },
+  wrapperLogoFrame: { width: 116, height: 116, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(167,243,208,0.5)', alignItems: 'center', justifyContent: 'center', backgroundColor: '#07111F', overflow: 'hidden' },
+  wrapperLogo: { width: 108, height: 108 },
+  wrapperBrand: { color: '#fff', fontSize: 24, fontWeight: '900', letterSpacing: 4, marginTop: 16 },
+  wrapperSeries: { color: '#A7F3D0', fontSize: 8, fontWeight: '800', letterSpacing: 1.2, marginTop: 6 },
+  wrapperTearLine: { width: '100%', borderTopWidth: 1, borderBottomWidth: 1, borderColor: 'rgba(255,255,255,0.3)', marginTop: 24, paddingVertical: 7, alignItems: 'center' },
+  wrapperTearText: { color: 'rgba(255,255,255,0.62)', fontSize: 8, fontWeight: '900', letterSpacing: 1.5 },
+  wrapperHint: { color: 'rgba(255,255,255,0.46)', fontSize: 8, fontWeight: '700', letterSpacing: 1.3, marginTop: 18 },
   foilLine: { width: '100%', height: 2, backgroundColor: '#A7F3D0', opacity: 0.8 },
   cardTopline: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardSeries: { color: '#A7F3D0', fontSize: 7, fontWeight: '900', letterSpacing: 0.9 },

@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="finzyMint" x1="42" y1="30" x2="220" y2="220" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#A7F3D0"/>
+      <stop offset="1" stop-color="#20DDAA"/>
+    </linearGradient>
+  </defs>
+  <path d="M47 214C52 166 58 105 64 70C69 39 91 22 126 22H215C211 50 197 67 169 67H126C109 67 98 73 92 87L87 113C101 96 118 88 144 88H204C200 115 185 130 158 130H82L76 183C73 205 62 214 47 214Z" fill="url(#finzyMint)"/>
+  <path d="M72 126C84 102 103 88 133 88H204C199 111 186 124 164 129H82L76 183C73 204 62 214 47 214L52 174C56 153 63 137 72 126Z" fill="#10B995" fill-opacity=".72"/>
+  <path d="M218 143L237 128M225 166H248M218 188L236 205" stroke="#A7F3D0" stroke-width="14" stroke-linecap="round"/>
+</svg>
