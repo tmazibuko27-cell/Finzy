@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, useWindowDimensions, Share } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import type { FeedCard } from '@/types/content';
@@ -46,12 +45,13 @@ export function FeedCardView({ card, onReport }: { card: FeedCard; onReport: (ca
 
   return (
     <View style={[styles.container, { height }]}>
-      <LinearGradient colors={['#0B1220', '#172554', '#1E3A8A']} style={StyleSheet.absoluteFill} />
-
       <View style={styles.content}>
         <View style={styles.headerRow}>
-          <Text style={styles.eyebrow}>{card.eyebrow ?? TYPE_LABEL[card.type]}</Text>
-          <Text style={styles.difficulty}>{DIFFICULTY_LABEL[card.difficulty]}</Text>
+          <View style={styles.eyebrowRow}>
+            <View style={styles.eyebrowRule} />
+            <Text style={styles.eyebrow}>{card.eyebrow ?? TYPE_LABEL[card.type]}</Text>
+          </View>
+          <Text style={styles.difficulty}>{DIFFICULTY_LABEL[card.difficulty]} · {card.estimatedSeconds}s</Text>
         </View>
 
         {card.storySequence && card.storyTotal ? (
@@ -60,6 +60,7 @@ export function FeedCardView({ card, onReport }: { card: FeedCard; onReport: (ca
           </Text>
         ) : null}
 
+        <Text style={styles.typeLabel}>{TYPE_LABEL[card.type]}</Text>
         <Text style={styles.hook}>{card.hook}</Text>
 
         {card.imageUrl ? (
@@ -118,18 +119,21 @@ export function FeedCardView({ card, onReport }: { card: FeedCard; onReport: (ca
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%' },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 90, paddingRight: 90 },
+  container: { width: '100%', backgroundColor: '#102A43' },
+  content: { flex: 1, paddingHorizontal: 24, paddingTop: 92, paddingRight: 92, justifyContent: 'center' },
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  eyebrow: { color: '#93C5FD', fontSize: 12, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
-  difficulty: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '600' },
+  eyebrowRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  eyebrowRule: { width: 20, height: 2, backgroundColor: '#8BE0C2' },
+  eyebrow: { color: '#B7F0D8', fontSize: 11, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  difficulty: { color: 'rgba(255,255,255,0.55)', fontSize: 11, fontWeight: '600' },
   progress: { color: 'rgba(255,255,255,0.6)', fontSize: 12, marginTop: 4, fontWeight: '600' },
-  hook: { color: '#fff', fontSize: 24, fontWeight: '700', lineHeight: 30, marginTop: 14 },
-  image: { width: '100%', height: 160, borderRadius: 16, marginTop: 16 },
-  body: { color: 'rgba(255,255,255,0.9)', fontSize: 16, lineHeight: 23, marginTop: 16 },
+  typeLabel: { color: 'rgba(255,255,255,0.45)', fontSize: 12, fontWeight: '700', letterSpacing: 1.2, textTransform: 'uppercase', marginTop: 32 },
+  hook: { color: '#fff', fontSize: 31, fontWeight: '800', lineHeight: 37, marginTop: 10, maxWidth: 580 },
+  image: { width: '100%', height: 160, borderRadius: 8, marginTop: 16 },
+  body: { color: 'rgba(255,255,255,0.78)', fontSize: 16, lineHeight: 25, marginTop: 18, maxWidth: 560 },
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 18 },
-  chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: 'rgba(255,255,255,0.12)' },
-  chipText: { color: '#fff', fontSize: 13, fontWeight: '600' },
+  chip: { paddingHorizontal: 11, paddingVertical: 6, borderRadius: 6, backgroundColor: 'rgba(255,255,255,0.1)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.14)' },
+  chipText: { color: '#D8F8E9', fontSize: 12, fontWeight: '700' },
   sourcesRow: { marginTop: 20 },
-  sourcesText: { color: 'rgba(255,255,255,0.6)', fontSize: 13, textDecorationLine: 'underline' },
+  sourcesText: { color: '#B7F0D8', fontSize: 13, fontWeight: '700' },
 });
