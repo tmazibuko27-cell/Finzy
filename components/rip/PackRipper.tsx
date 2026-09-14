@@ -22,11 +22,13 @@ export function PackRipper({
   previewPerson?: PackOpenResult['person'];
 }) {
   const [phase, setPhase] = useState<Phase>('idle');
+  const [cardFlipped, setCardFlipped] = useState(false);
   const [result, setResult] = useState<PackOpenResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const [shake] = useState(() => new Animated.Value(0));
   const [flip] = useState(() => new Animated.Value(0));
+  const [interactiveFlip] = useState(() => new Animated.Value(0));
   const [reveal] = useState(() => new Animated.Value(0));
   const [confetti] = useState(() =>
     Array.from({ length: 14 }, () => {
@@ -105,6 +107,8 @@ export function PackRipper({
       replay: true,
     };
     setResult(previewResult);
+    setCardFlipped(false);
+    interactiveFlip.setValue(0);
     flip.setValue(1);
     reveal.setValue(1);
     setPhase('revealed');
@@ -113,9 +117,24 @@ export function PackRipper({
 
   const resetForNextRip = () => {
     flip.setValue(0);
+    interactiveFlip.setValue(0);
     reveal.setValue(0);
     setResult(null);
+    setCardFlipped(false);
     setPhase('idle');
+  };
+
+  const handleCardFlip = () => {
+    if (!result) return;
+    Haptics.selectionAsync().catch(() => {});
+    const nextFlipped = !cardFlipped;
+    setCardFlipped(nextFlipped);
+    Animated.timing(interactiveFlip, {
+      toValue: nextFlipped ? 1 : 0,
+      duration: 520,
+      easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
   };
 
   const shakeTranslate = shake.interpolate({ inputRange: [-1, 1], outputRange: [-8, 8] });
@@ -187,13 +206,20 @@ export function PackRipper({
         </Animated.View>
 
         {phase === 'revealed' && result ? (
-          <View style={[styles.card, styles.cardFace, styles.cardBack, styles.staticCard, styles.staticShadow]}>
-            <View style={[styles.cardOuterRim, { borderColor: rarityColor(result.rarity) }]}>
-              <View style={styles.cardInnerRim}>
-                <CollectibleCardFace result={result} />
-              </View>
-            </View>
-          </View>
+          <Pressable onPress={handleCardFlip} accessibilityRole="button" accessibilityLabel="Flip collectible card">
+            <Animated.View style={[styles.card, styles.cardFace, styles.staticCard, styles.staticShadow, { transform: [{ perspective: 900 }, { rotateY: interactiveFlip.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }]}> 
+              <Animated.View style={[styles.cardSide, { opacity: interactiveFlip.interpolate({ inputRange: [0, 0.5, 0.5001, 1], outputRange: [1, 1, 0, 0] }) }]}>
+                <View style={[styles.cardOuterRim, { borderColor: rarityColor(result.rarity) }]}>
+                  <View style={styles.cardInnerRim}>
+                    <CollectibleCardFace result={result} />
+                  </View>
+                </View>
+              </Animated.View>
+              <Animated.View style={[styles.cardSide, styles.interactiveBack, { opacity: interactiveFlip.interpolate({ inputRange: [0, 0.5, 0.5001, 1], outputRange: [0, 0, 1, 1] }), transform: [{ rotateY: '180deg' }] }]}>
+                <CollectibleCardBack />
+              </Animated.View>
+            </Animated.View>
+          </Pressable>
         ) : null}
       </View>
 
@@ -228,6 +254,20 @@ export function PackRipper({
         </>
       )}
     </View>
+  );
+}
+
+function CollectibleCardBack() {
+  return (
+    <LinearGradient colors={['#07111F', '#123B4E', '#07111F']} style={styles.backContent}>
+      <View style={styles.backHalo}>
+        <Image source={require('../../assets/images/collectibles/logo.png')} style={styles.backLogo} contentFit="contain" />
+      </View>
+      <Text style={styles.backBrand}>FINZY</Text>
+      <Text style={styles.backSeries}>COLLECTIBLE SERIES</Text>
+      <View style={styles.backRule} />
+      <Text style={styles.backHint}>TAP TO FLIP</Text>
+    </LinearGradient>
   );
 }
 
@@ -310,9 +350,18 @@ const styles = StyleSheet.create({
   cardBack: { borderWidth: 2, gap: 7, padding: 0, backgroundColor: '#163B54', overflow: 'hidden' },
   staticCard: { zIndex: 5 },
   staticShadow: { shadowColor: '#020617', shadowOffset: { width: 7, height: 9 }, shadowOpacity: 0.7, shadowRadius: 0, elevation: 12 },
+  cardSide: { ...StyleSheet.absoluteFill, borderRadius: 24, overflow: 'hidden' },
+  interactiveBack: { backfaceVisibility: 'hidden' },
   cardOuterRim: { width: '100%', height: '100%', borderWidth: 5, borderRadius: 21, padding: 4, backgroundColor: '#07111F' },
   cardInnerRim: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.45)', borderRadius: 14, overflow: 'hidden' },
   faceContent: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 14 },
+  backContent: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 18 },
+  backHalo: { width: 132, height: 132, borderRadius: 66, borderWidth: 1, borderColor: 'rgba(167,243,208,0.55)', backgroundColor: 'rgba(167,243,208,0.08)', alignItems: 'center', justifyContent: 'center' },
+  backLogo: { width: 92, height: 92 },
+  backBrand: { color: '#fff', fontSize: 23, fontWeight: '900', letterSpacing: 4, marginTop: 16 },
+  backSeries: { color: '#A7F3D0', fontSize: 8, fontWeight: '800', letterSpacing: 1.5, marginTop: 5 },
+  backRule: { width: 90, height: 1, backgroundColor: 'rgba(255,255,255,0.35)', marginVertical: 22 },
+  backHint: { color: 'rgba(255,255,255,0.55)', fontSize: 8, fontWeight: '800', letterSpacing: 1.3 },
   foilLine: { width: '100%', height: 2, backgroundColor: '#A7F3D0', opacity: 0.8 },
   cardTopline: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardSeries: { color: '#A7F3D0', fontSize: 7, fontWeight: '900', letterSpacing: 0.9 },
