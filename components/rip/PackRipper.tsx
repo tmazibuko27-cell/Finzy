@@ -76,17 +76,15 @@ export function PackRipper({
           isBig ? Haptics.NotificationFeedbackType.Success : Haptics.NotificationFeedbackType.Warning
         ).catch(() => {});
 
-        if (isBig) {
-          confetti.forEach((particle) => {
-            particle.progress.setValue(0);
-            Animated.timing(particle.progress, {
-              toValue: 1,
-              duration: 900 + Math.random() * 400,
-              easing: Easing.out(Easing.quad),
-              useNativeDriver: true,
-            }).start();
-          });
-        }
+        confetti.forEach((particle) => {
+          particle.progress.setValue(0);
+          Animated.timing(particle.progress, {
+            toValue: 1,
+            duration: 900 + Math.random() * 400,
+            easing: Easing.out(Easing.quad),
+            useNativeDriver: true,
+          }).start();
+        });
 
         onOpened(outcome);
       });
@@ -183,7 +181,7 @@ export function PackRipper({
           </View>
         )}
 
-        {phase !== 'revealed' ? <Animated.View style={{ transform: [{ translateX: shakeTranslate }, { perspective: 800 }, { rotateY: flipRotate }] }}>
+        {phase !== 'revealed' ? <Animated.View style={[styles.openingStack, { transform: [{ translateX: shakeTranslate }, { perspective: 800 }, { rotateY: flipRotate }] }]}>
           <Animated.View style={[styles.card, styles.cardFace, { opacity: frontOpacity }]}>
             <CollectibleWrapper />
           </Animated.View>
@@ -272,7 +270,7 @@ function CollectibleWrapper() {
     <LinearGradient colors={['#123B4E', '#07111F', '#0F2740']} style={styles.wrapper}>
       <View style={styles.wrapperTopFold} />
       <View style={styles.wrapperLogoFrame}>
-        <Image source={require('../../assets/images/collectibles/logo.png')} style={styles.wrapperLogo} contentFit="contain" />
+        <Image source={require('../../assets/images/collectibles/logo-mark.svg')} style={styles.wrapperLogo} contentFit="contain" />
       </View>
       <Text style={styles.wrapperBrand}>FINZY</Text>
       <Text style={styles.wrapperSeries}>FOUNDERS COLLECTION</Text>
@@ -340,6 +338,7 @@ const CARD_H = 300;
 const styles = StyleSheet.create({
   container: { alignItems: 'center', gap: 24 },
   stage: { width: CARD_W, height: CARD_H, alignItems: 'center', justifyContent: 'center' },
+  openingStack: { width: CARD_W, height: CARD_H, position: 'absolute', left: 0, top: 0 },
   cardHitbox: { width: CARD_W, height: CARD_H, position: 'absolute', left: 0, top: 0 },
   confettiLayer: {
     position: 'absolute',
