@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@/components/ThemeProvider';
 import { QuizBlock } from '@/components/quiz/QuizBlock';
 import { MOCK_FEED_CARDS } from '@/lib/mockFeed';
+import { getPrivateCfaRecords, toCfaQuiz } from '@/lib/cfaLocalBank';
 import type { QuizSubmitResult } from '@/types/content';
 
 const DAILY_SET_SIZE = 5;
@@ -18,8 +19,14 @@ export default function QuizHubScreen() {
   const [totalXp, setTotalXp] = useState(0);
 
   const questions = useMemo(() => {
+    const privateQuestions = getPrivateCfaRecords().slice(0, DAILY_SET_SIZE).map((record) => ({
+      id: record.id,
+      eyebrow: `CFA · ${record.sourceTitle}`,
+      quiz: toCfaQuiz(record),
+    }));
+    if (privateQuestions.length > 0) return privateQuestions;
     const withQuiz = MOCK_FEED_CARDS.filter((c) => c.quiz);
-    return withQuiz.slice(0, DAILY_SET_SIZE);
+    return withQuiz.slice(0, DAILY_SET_SIZE).map((card) => ({ id: card.id, eyebrow: card.eyebrow, quiz: card.quiz! }));
   }, []);
 
   const finished = started && step >= questions.length;
@@ -49,7 +56,7 @@ export default function QuizHubScreen() {
           <View style={[styles.dailyCard, { backgroundColor: theme.colors.cardBackground }]}>
             <Ionicons name="flash" size={28} color="#FDE047" />
             <Text style={styles.dailyTitle}>Practice Quiz</Text>
-            <Text style={styles.dailySubtitle}>{questions.length} demo questions · practice the basics</Text>
+            <Text style={styles.dailySubtitle}>{questions.length} questions · CFA source-backed practice</Text>
             <Pressable
               style={[styles.startButton, { backgroundColor: theme.colors.action }]}
               onPress={() => setStarted(true)}
@@ -79,6 +86,7 @@ export default function QuizHubScreen() {
             Question {step + 1} of {questions.length}
           </Text>
           <View style={[styles.quizCard, { backgroundColor: theme.colors.cardBackground }]}>
+            <Text style={styles.quizEyebrow}>{questions[step].eyebrow}</Text>
             <Text style={styles.quizPrompt}>{questions[step].quiz!.prompt}</Text>
             <QuizBlock key={step} quiz={questions[step].quiz!} onResult={handleResult} />
           </View>
@@ -111,5 +119,6 @@ const styles = StyleSheet.create({
   quizScroll: { padding: 20 },
   progressLabel: { fontSize: 13, fontWeight: '600', marginBottom: 10 },
   quizCard: { borderRadius: 20, padding: 20 },
+  quizEyebrow: { color: '#A7F3D0', fontSize: 11, fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 10 },
   quizPrompt: { color: '#fff', fontSize: 18, fontWeight: '700', lineHeight: 24 },
 });

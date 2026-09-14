@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { MOCK_QUIZ_ANSWERS } from '@/lib/mockFeed';
+import { getPrivateCfaAnswer } from '@/lib/cfaLocalBank';
 import type { QuizPayload, QuizSubmitResult } from '@/types/content';
 
 /**
@@ -25,13 +26,14 @@ export async function submitQuizAnswer(
     return data as QuizSubmitResult;
   }
 
-  const answer = MOCK_QUIZ_ANSWERS[quiz.questionId];
+  const privateAnswer = getPrivateCfaAnswer(quiz.questionId);
+  const answer = privateAnswer ?? MOCK_QUIZ_ANSWERS[quiz.questionId];
   if (!answer) throw new Error('This question is unavailable in demo mode');
   const correct = answer.correctOptionId === selectedOptionId;
   return {
     correct,
-    explanation: answer?.explanation ?? 'Explanation unavailable in demo mode.',
-    correctOptionId: answer?.correctOptionId ?? null,
+    explanation: answer.explanation ?? 'Explanation unavailable in demo mode.',
+    correctOptionId: answer.correctOptionId ?? null,
     xpAwarded: correct ? quiz.xpReward : 0,
     totalXp: 0,
     level: 1,
