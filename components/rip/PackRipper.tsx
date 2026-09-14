@@ -130,11 +130,18 @@ export function PackRipper({
     const nextFlipped = !cardFlipped;
     setCardFlipped(nextFlipped);
     Animated.timing(interactiveFlip, {
-      toValue: nextFlipped ? 1 : 0,
-      duration: 520,
+      toValue: 0.5,
+      duration: 260,
       easing: Easing.inOut(Easing.cubic),
       useNativeDriver: true,
-    }).start();
+    }).start(() => {
+      Animated.timing(interactiveFlip, {
+        toValue: nextFlipped ? 1 : 0,
+        duration: 260,
+        easing: Easing.inOut(Easing.cubic),
+        useNativeDriver: true,
+      }).start();
+    });
   };
 
   const shakeTranslate = shake.interpolate({ inputRange: [-1, 1], outputRange: [-8, 8] });
@@ -176,7 +183,7 @@ export function PackRipper({
           </View>
         )}
 
-        <Animated.View style={{ transform: [{ translateX: shakeTranslate }, { perspective: 800 }, { rotateY: flipRotate }] }}>
+        {phase !== 'revealed' ? <Animated.View style={{ transform: [{ translateX: shakeTranslate }, { perspective: 800 }, { rotateY: flipRotate }] }}>
           <Animated.View style={[styles.card, styles.cardFace, { opacity: frontOpacity }]}>
             <View style={styles.packInner}>
               <Ionicons name="sparkles" size={36} color="#FDE047" />
@@ -203,21 +210,16 @@ export function PackRipper({
               </View>
             </View>
           </Animated.View>
-        </Animated.View>
+        </Animated.View> : null}
 
         {phase === 'revealed' && result ? (
-          <Pressable onPress={handleCardFlip} accessibilityRole="button" accessibilityLabel="Flip collectible card">
-            <Animated.View style={[styles.card, styles.cardFace, styles.staticCard, styles.staticShadow, { transform: [{ perspective: 900 }, { rotateY: interactiveFlip.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '180deg'] }) }] }]}> 
-              <Animated.View style={[styles.cardSide, { opacity: interactiveFlip.interpolate({ inputRange: [0, 0.5, 0.5001, 1], outputRange: [1, 1, 0, 0] }) }]}>
-                <View style={[styles.cardOuterRim, { borderColor: rarityColor(result.rarity) }]}>
-                  <View style={styles.cardInnerRim}>
-                    <CollectibleCardFace result={result} />
-                  </View>
+          <Pressable style={styles.cardHitbox} onPress={handleCardFlip} accessibilityRole="button" accessibilityLabel="Flip collectible card">
+            <Animated.View style={[styles.card, styles.cardFace, styles.staticCard, styles.staticShadow, { transform: [{ scaleX: interactiveFlip.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 0, 1] }) }] }]}> 
+              <View style={[styles.cardOuterRim, { borderColor: rarityColor(result.rarity) }]}>
+                <View style={styles.cardInnerRim}>
+                  {cardFlipped ? <CollectibleCardBack /> : <CollectibleCardFace result={result} />}
                 </View>
-              </Animated.View>
-              <Animated.View style={[styles.cardSide, styles.interactiveBack, { opacity: interactiveFlip.interpolate({ inputRange: [0, 0.5, 0.5001, 1], outputRange: [0, 0, 1, 1] }), transform: [{ rotateY: '180deg' }] }]}>
-                <CollectibleCardBack />
-              </Animated.View>
+              </View>
             </Animated.View>
           </Pressable>
         ) : null}
@@ -327,6 +329,7 @@ const CARD_H = 300;
 const styles = StyleSheet.create({
   container: { alignItems: 'center', gap: 24 },
   stage: { width: CARD_W, height: CARD_H, alignItems: 'center', justifyContent: 'center' },
+  cardHitbox: { width: CARD_W, height: CARD_H, position: 'absolute', left: 0, top: 0 },
   confettiLayer: {
     position: 'absolute',
     top: '50%',
@@ -350,8 +353,6 @@ const styles = StyleSheet.create({
   cardBack: { borderWidth: 2, gap: 7, padding: 0, backgroundColor: '#163B54', overflow: 'hidden' },
   staticCard: { zIndex: 5 },
   staticShadow: { shadowColor: '#020617', shadowOffset: { width: 7, height: 9 }, shadowOpacity: 0.7, shadowRadius: 0, elevation: 12 },
-  cardSide: { ...StyleSheet.absoluteFill, borderRadius: 24, overflow: 'hidden' },
-  interactiveBack: { backfaceVisibility: 'hidden' },
   cardOuterRim: { width: '100%', height: '100%', borderWidth: 5, borderRadius: 21, padding: 4, backgroundColor: '#07111F' },
   cardInnerRim: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.45)', borderRadius: 14, overflow: 'hidden' },
   faceContent: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 14 },
