@@ -7,7 +7,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { PackRipper } from '@/components/rip/PackRipper';
 import { getPackBalance, claimDailyPack } from '@/features/pack/api';
 
-export default function RipItScreen() {
+export default function CollectibleScreen() {
   const [balance, setBalance] = useState<number | null>(null);
   const [dailyClaimed, setDailyClaimed] = useState(false);
 
@@ -29,7 +29,7 @@ export default function RipItScreen() {
       <SafeAreaView style={{ flex: 1 }} edges={['bottom']}>
         <ScrollView contentContainerStyle={styles.content}>
           <View style={styles.header}>
-            <Text style={styles.title}>Rip It</Text>
+            <Text style={styles.title}>Collectibles</Text>
             <Text style={styles.subtitle}>Open a pack, meet a CEO or investor.</Text>
           </View>
 
@@ -45,7 +45,21 @@ export default function RipItScreen() {
             <Text style={styles.balanceText}>{balance ?? '—'} pack{balance === 1 ? '' : 's'} available</Text>
           </View>
 
-          <PackRipper balance={balance ?? 0} onOpened={() => refresh()} />
+          <PackRipper
+            balance={balance ?? 0}
+            onOpened={() => refresh()}
+            previewPerson={{
+              id: 'warren-buffett',
+              name: 'Warren Buffett',
+              slug: 'warren-buffett',
+              descriptor: 'Chairman and CEO of Berkshire Hathaway',
+              business: 'Berkshire Hathaway',
+              education: 'Columbia Business School',
+              netWorth: '$150B+',
+              power: 98,
+              portraitAsset: require('../../assets/images/collectibles/image.png'),
+            }}
+          />
 
           <View style={styles.linkRow}>
             <Pressable onPress={() => router.push('/rip/buy-packs')} accessibilityRole="button">

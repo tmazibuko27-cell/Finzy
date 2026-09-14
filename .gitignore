@@ -38,6 +38,7 @@ yarn-error.*
 *.pdf
 *.PDF
 data/cfa.local/
+data/sie.local/
 
 # typescript
 *.tsbuildinfo

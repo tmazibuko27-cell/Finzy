@@ -4,7 +4,13 @@ import type { CardRarity } from '@/types/content';
 export type PersonProfile = {
   slug: string;
   name: string;
+  portraitUrl?: string | null;
+  portraitAsset?: number;
   descriptor: string;
+  business?: string;
+  education?: string;
+  netWorth?: string;
+  power?: number;
   roles: string[];
   timeline: { year: string; text: string }[];
   rarity: CardRarity;
@@ -49,7 +55,12 @@ export const MOCK_PEOPLE: Record<string, PersonProfile> = {
   'warren-buffett': {
     slug: 'warren-buffett',
     name: 'Warren Buffett',
+    portraitAsset: require('../assets/images/collectibles/image.png'),
     descriptor: 'Chairman and CEO of Berkshire Hathaway',
+    business: 'Berkshire Hathaway',
+    education: 'Columbia Business School',
+    netWorth: '$150B+',
+    power: 98,
     roles: ['investor', 'CEO'],
     timeline: [
       { year: '1951', text: 'Studied value investing under Benjamin Graham.' },

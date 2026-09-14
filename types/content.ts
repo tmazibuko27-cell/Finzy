@@ -15,7 +15,18 @@ export type Collectible = {
 };
 
 export type PackOpenResult = {
-  person: { id: string; name: string; slug: string; portraitUrl?: string | null };
+  person: {
+    id: string;
+    name: string;
+    slug: string;
+    descriptor?: string;
+    business?: string;
+    education?: string;
+    netWorth?: string;
+    power?: number;
+    portraitUrl?: string | null;
+    portraitAsset?: number;
+  };
   rarity: CardRarity;
   isDuplicate: boolean;
   bonusXp: number;

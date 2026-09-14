@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { useTheme } from '@/components/ThemeProvider';
 import { useLocalStore } from '@/lib/localStore';
@@ -45,11 +46,19 @@ export default function CollectionScreen() {
               accessibilityRole="button"
               accessibilityLabel={owned ? item.name : 'Locked card'}
             >
-              <Ionicons
-                name={owned ? 'person-circle' : 'help-circle-outline'}
-                size={48}
-                color={owned ? '#93C5FD' : theme.colors.textSecondary}
-              />
+              {owned && (item.portraitAsset || item.portraitUrl) ? (
+                <Image
+                  source={item.portraitAsset ?? { uri: item.portraitUrl ?? undefined }}
+                  style={styles.portrait}
+                  contentFit="cover"
+                />
+              ) : (
+                <Ionicons
+                  name={owned ? 'person-circle' : 'help-circle-outline'}
+                  size={48}
+                  color={owned ? '#93C5FD' : theme.colors.textSecondary}
+                />
+              )}
               <Text style={[styles.name, { color: owned ? '#fff' : theme.colors.textSecondary }]} numberOfLines={1}>
                 {owned ? item.name : '???'}
               </Text>
@@ -74,6 +83,7 @@ const styles = StyleSheet.create({
   progress: { fontSize: 13, fontWeight: '600' },
   grid: { padding: 20, gap: 12 },
   card: { flex: 1, borderRadius: 18, borderWidth: 1.5, padding: 16, alignItems: 'center', gap: 6, minHeight: 150, justifyContent: 'center' },
+  portrait: { width: 58, height: 58, borderRadius: 29, borderWidth: 1.5, borderColor: '#93C5FD' },
   name: { fontSize: 13.5, fontWeight: '700', maxWidth: '100%' },
   dupCount: { color: '#93C5FD', fontSize: 11, fontWeight: '700', marginTop: 2 },
   lockedText: { fontSize: 11, fontWeight: '600' },

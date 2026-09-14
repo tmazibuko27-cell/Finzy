@@ -81,13 +81,13 @@ export default function DiscoverScreen() {
                 style={styles.ripBanner}
                 onPress={() => router.push('/rip')}
                 accessibilityRole="button"
-                accessibilityLabel="Rip It — open a pack to collect a CEO or investor card"
+                accessibilityLabel="Collectibles — open a pack to collect a CEO or investor card"
               >
                 <View style={styles.ripBannerIcon}>
                   <Ionicons name="sparkles" size={22} color="#FDE047" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.ripBannerTitle}>Rip It</Text>
+                  <Text style={styles.ripBannerTitle}>Collectibles</Text>
                   <Text style={styles.ripBannerSubtitle}>Open a pack, collect legendary CEOs & investors</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={18} color="rgba(255,255,255,0.7)" />
