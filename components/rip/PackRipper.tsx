@@ -178,13 +178,21 @@ export function PackRipper({
               },
             ]}
           >
-            {result ? <CollectibleCardFace result={result} /> : null}
+            <View style={[styles.cardOuterRim, { borderColor: result ? rarityColor(result.rarity) : '#334155' }]}>
+              <View style={styles.cardInnerRim}>
+                {result ? <CollectibleCardFace result={result} /> : null}
+              </View>
+            </View>
           </Animated.View>
         </Animated.View>
 
         {phase === 'revealed' && result ? (
-          <View style={[styles.card, styles.cardFace, styles.cardBack, styles.staticCard]}>
-            <CollectibleCardFace result={result} />
+          <View style={[styles.card, styles.cardFace, styles.cardBack, styles.staticCard, styles.staticShadow]}>
+            <View style={[styles.cardOuterRim, { borderColor: rarityColor(result.rarity) }]}>
+              <View style={styles.cardInnerRim}>
+                <CollectibleCardFace result={result} />
+              </View>
+            </View>
           </View>
         ) : null}
       </View>
@@ -301,6 +309,9 @@ const styles = StyleSheet.create({
   cardFace: { backgroundColor: '#0F172A' },
   cardBack: { borderWidth: 2, gap: 7, padding: 0, backgroundColor: '#163B54', overflow: 'hidden' },
   staticCard: { zIndex: 5 },
+  staticShadow: { shadowColor: '#020617', shadowOffset: { width: 7, height: 9 }, shadowOpacity: 0.7, shadowRadius: 0, elevation: 12 },
+  cardOuterRim: { width: '100%', height: '100%', borderWidth: 5, borderRadius: 21, padding: 4, backgroundColor: '#07111F' },
+  cardInnerRim: { flex: 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.45)', borderRadius: 14, overflow: 'hidden' },
   faceContent: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 14 },
   foilLine: { width: '100%', height: 2, backgroundColor: '#A7F3D0', opacity: 0.8 },
   cardTopline: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
