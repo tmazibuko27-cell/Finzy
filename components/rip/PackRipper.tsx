@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated, Easing } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import { RarityBadge, rarityColor } from '@/components/rip/RarityBadge';
 import { openPack } from '@/features/pack/api';
 import type { PackOpenResult } from '@/types/content';
@@ -13,9 +15,11 @@ const CONFETTI_COLORS = ['#FDE047', '#60A5FA', '#F87171', '#4ADE80', '#C084FC'];
 export function PackRipper({
   balance,
   onOpened,
+  previewPerson,
 }: {
   balance: number;
   onOpened: (result: PackOpenResult) => void;
+  previewPerson?: PackOpenResult['person'];
 }) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [result, setResult] = useState<PackOpenResult | null>(null);
@@ -37,7 +41,7 @@ export function PackRipper({
     })
   );
 
-  const canRip = balance > 0 && phase === 'idle';
+  const canRip = phase === 'idle';
 
   const handleRip = async () => {
     if (!canRip) return;
@@ -88,6 +92,23 @@ export function PackRipper({
       setPhase('idle');
       setError(err instanceof Error ? err.message : 'Could not open pack. Try again.');
     }
+  };
+
+  const handlePreview = () => {
+    if (!previewPerson || phase !== 'idle') return;
+    const previewResult: PackOpenResult = {
+      person: previewPerson,
+      rarity: 'legendary',
+      isDuplicate: false,
+      bonusXp: 0,
+      balance,
+      replay: true,
+    };
+    setResult(previewResult);
+    flip.setValue(1);
+    reveal.setValue(1);
+    setPhase('revealed');
+    onOpened(previewResult);
   };
 
   const resetForNextRip = () => {
@@ -157,20 +178,15 @@ export function PackRipper({
               },
             ]}
           >
-            {result && (
-              <>
-                <Ionicons name="person-circle" size={72} color="#94A3B8" />
-                <Text style={styles.resultName}>{result.person.name}</Text>
-                <RarityBadge rarity={result.rarity} />
-                {result.isDuplicate && result.bonusXp > 0 ? (
-                  <Text style={styles.dupText}>Already collected · +{result.bonusXp} XP</Text>
-                ) : result.isDuplicate ? null : (
-                  <Text style={styles.newText}>New card!</Text>
-                )}
-              </>
-            )}
+            {result ? <CollectibleCardFace result={result} /> : null}
           </Animated.View>
         </Animated.View>
+
+        {phase === 'revealed' && result ? (
+          <View style={[styles.card, styles.cardFace, styles.cardBack, styles.staticCard]}>
+            <CollectibleCardFace result={result} />
+          </View>
+        ) : null}
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -180,17 +196,80 @@ export function PackRipper({
           <Text style={styles.actionButtonText}>{balance > 0 ? 'Rip another' : 'Done'}</Text>
         </Pressable>
       ) : (
-        <Pressable
-          style={[styles.actionButton, !canRip && styles.actionButtonDisabled]}
-          onPress={handleRip}
-          disabled={!canRip}
-          accessibilityRole="button"
-          accessibilityLabel="Rip pack"
-        >
-          <Text style={styles.actionButtonText}>{phase === 'opening' ? 'Ripping…' : 'Tap to rip'}</Text>
-        </Pressable>
+        <>
+          <Pressable
+            style={[styles.actionButton, !canRip && styles.actionButtonDisabled]}
+            onPress={handleRip}
+            disabled={!canRip}
+            accessibilityRole="button"
+            accessibilityLabel="Open collectible pack"
+          >
+            <Text style={styles.actionButtonText}>{phase === 'opening' ? 'Opening…' : 'Open collectible'}</Text>
+          </Pressable>
+          {previewPerson ? (
+            <Pressable
+              style={styles.previewButton}
+              onPressIn={handlePreview}
+              onPress={handlePreview}
+              hitSlop={8}
+              accessibilityRole="button"
+            >
+              <Text style={styles.previewButtonText}>Preview Warren Buffett card</Text>
+            </Pressable>
+          ) : null}
+        </>
       )}
     </View>
+  );
+}
+
+function CollectibleCardFace({ result }: { result: PackOpenResult }) {
+  return (
+    <LinearGradient colors={['#163B54', '#0E2439', '#07111F']} style={styles.faceContent}>
+      <View style={styles.foilLine} />
+      <View style={styles.cardTopline}>
+        <Text style={styles.cardSeries}>FINZY / FOUNDERS</Text>
+        <Text style={styles.cardNumber}>01</Text>
+      </View>
+      {result.person.portraitAsset || result.person.portraitUrl ? (
+        <Image
+          source={result.person.portraitAsset ?? { uri: result.person.portraitUrl ?? undefined }}
+          style={styles.portraitPanel}
+          contentFit="cover"
+        />
+      ) : (
+        <View style={styles.portraitPanel}><Ionicons name="person-circle" size={72} color="#94A3B8" /></View>
+      )}
+      <View style={styles.cardHeader}>
+        <Text style={styles.resultName}>{result.person.name}</Text>
+        <RarityBadge rarity={result.rarity} size="sm" />
+      </View>
+      <Text style={styles.resultDescriptor}>{result.person.descriptor}</Text>
+      <View style={styles.statGrid}>
+        <View style={styles.statCell}>
+          <Text style={styles.statLabel}>BUSINESS</Text>
+          <Text style={styles.statValue} numberOfLines={1}>{result.person.business ?? '—'}</Text>
+        </View>
+        <View style={styles.statCell}>
+          <Text style={styles.statLabel}>EDUCATION</Text>
+          <Text style={styles.statValue} numberOfLines={1}>{result.person.education ?? '—'}</Text>
+        </View>
+        <View style={styles.statCell}>
+          <Text style={styles.statLabel}>NET WORTH</Text>
+          <Text style={styles.statValue}>{result.person.netWorth ?? '—'}</Text>
+        </View>
+        <View style={styles.powerCell}>
+          <Text style={styles.statLabel}>POWER</Text>
+          <Text style={styles.powerValue}>{result.person.power ?? '—'}</Text>
+        </View>
+      </View>
+      {result.isDuplicate && result.bonusXp > 0 ? (
+        <Text style={styles.dupText}>Already collected · +{result.bonusXp} XP</Text>
+      ) : result.isDuplicate ? null : (
+        <Text style={styles.newText}>New card!</Text>
+      )}
+      <View style={styles.foilLine} />
+    </LinearGradient>
   );
 }
 
@@ -220,15 +299,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardFace: { backgroundColor: '#0F172A' },
-  cardBack: { borderWidth: 2, gap: 10, padding: 20 },
+  cardBack: { borderWidth: 2, gap: 7, padding: 0, backgroundColor: '#163B54', overflow: 'hidden' },
+  staticCard: { zIndex: 5 },
+  faceContent: { width: '100%', height: '100%', alignItems: 'center', justifyContent: 'center', gap: 6, padding: 14 },
+  foilLine: { width: '100%', height: 2, backgroundColor: '#A7F3D0', opacity: 0.8 },
+  cardTopline: { width: '100%', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardSeries: { color: '#A7F3D0', fontSize: 7, fontWeight: '900', letterSpacing: 0.9 },
+  cardNumber: { color: 'rgba(255,255,255,0.55)', fontSize: 8, fontWeight: '800' },
+  portraitPanel: { width: '100%', height: 92, borderWidth: 2, borderColor: '#A7F3D0', backgroundColor: '#0B1220', alignItems: 'center', justifyContent: 'center' },
+  cardHeader: { width: '100%', alignItems: 'center', gap: 5 },
   packInner: { alignItems: 'center', gap: 6 },
   packLabel: { color: '#fff', fontSize: 20, fontWeight: '800', letterSpacing: 1, marginTop: 8 },
   packSub: { color: 'rgba(255,255,255,0.6)', fontSize: 12, fontWeight: '700', letterSpacing: 1.5 },
-  resultName: { color: '#fff', fontSize: 19, fontWeight: '800', textAlign: 'center' },
+  resultName: { color: '#fff', fontSize: 18, fontWeight: '800', textAlign: 'center' },
+  resultDescriptor: { color: 'rgba(255,255,255,0.68)', fontSize: 10, textAlign: 'center' },
+  statGrid: { width: '100%', flexDirection: 'row', flexWrap: 'wrap', gap: 5, marginTop: 2 },
+  statCell: { width: '48%', backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 5, padding: 5, borderLeftWidth: 2, borderLeftColor: '#60A5FA' },
+  powerCell: { width: '48%', backgroundColor: 'rgba(167,243,208,0.18)', borderRadius: 5, padding: 5, borderLeftWidth: 2, borderLeftColor: '#A7F3D0' },
+  statLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 7, fontWeight: '800', letterSpacing: 0.5 },
+  statValue: { color: '#fff', fontSize: 9, fontWeight: '700', marginTop: 2 },
+  powerValue: { color: '#A7F3D0', fontSize: 15, fontWeight: '900', marginTop: -1 },
   newText: { color: '#4ADE80', fontWeight: '700', fontSize: 13 },
   dupText: { color: '#93C5FD', fontWeight: '600', fontSize: 13, textAlign: 'center' },
   actionButton: { backgroundColor: '#2563EB', borderRadius: 999, paddingHorizontal: 32, paddingVertical: 14 },
   actionButtonDisabled: { backgroundColor: '#334155' },
   actionButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  previewButton: { borderWidth: 1, borderColor: 'rgba(255,255,255,0.35)', borderRadius: 999, paddingHorizontal: 20, paddingVertical: 10 },
+  previewButtonText: { color: 'rgba(255,255,255,0.8)', fontWeight: '700', fontSize: 13 },
   error: { color: '#F87171', fontSize: 13, textAlign: 'center' },
 });

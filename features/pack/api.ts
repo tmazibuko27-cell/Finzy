@@ -67,6 +67,10 @@ function rollRarity(): CardRarity {
 }
 
 function openPackMock(): PackOpenResult {
+  // Local demo mode keeps the core collectible loop testable before payments exist.
+  if (useLocalStore.getState().packBalance < 1) {
+    useLocalStore.getState().grantPacksLocal(1);
+  }
   const people = Object.values(MOCK_PEOPLE);
   let rarity = rollRarity();
   let pool = people.filter((p) => p.rarity === rarity);
@@ -81,7 +85,18 @@ function openPackMock(): PackOpenResult {
   if (bonusXp) useLocalStore.getState().addGuestXp(bonusXp);
 
   return {
-    person: { id: person.slug, name: person.name, slug: person.slug, portraitUrl: null },
+    person: {
+      id: person.slug,
+      name: person.name,
+      slug: person.slug,
+      descriptor: person.descriptor,
+      business: person.business,
+      education: person.education,
+      netWorth: person.netWorth,
+      power: person.power,
+      portraitUrl: person.portraitUrl ?? null,
+      portraitAsset: person.portraitAsset,
+    },
     rarity,
     isDuplicate,
     bonusXp,
